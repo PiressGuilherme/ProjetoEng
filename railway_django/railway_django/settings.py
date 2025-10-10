@@ -74,8 +74,17 @@ WSGI_APPLICATION = 'railway_django.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+
+        'NAME': 'railway',
+
+        'USER': 'postgres',
+
+        'PASSWORD': 'BbVXmvPScwKQhLiRhrsWrsBLSMKBLHcE',
+
+        'HOST': 'hopper.proxy.rlwy.net',
+
+        'PORT': '30710',
     }
 }
 
