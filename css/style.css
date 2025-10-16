@@ -1,0 +1,727 @@
+/* ---------------------------------------------------
+   GESTOR DE PACIENTES UBS
+   Estilo unificado, priorizando a nova identidade visual
+   com adição dos layouts faltantes.
+--------------------------------------------------- */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #004aad; /* Azul UBS */
+    --secondary-color: #f6f8fb;
+    --accent-color: #ff7b00; /* Laranja para botões e destaques */
+    --success-color: #34c759;
+    --warning-color: #ffcc00;
+    --danger-color: #e53935;
+    --urgent-color: #b71c1c;
+    --text-color: #1f1f1f;
+    --muted-text: #666;
+    --border-radius: 12px;
+    --shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Reset e tipografia básica */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: var(--secondary-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    text-decoration: none;
+    color: var(--primary-color);
+}
+
+/* ---------------------------------------------------
+   PÁGINA DE LOGIN (Adicionado do Código 2)
+--------------------------------------------------- */
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--secondary-color);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem;
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.login-header .logo-container {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.login-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-header p {
+    color: var(--muted-text);
+    margin-bottom: 2rem;
+}
+
+.login-form .input-with-icon {
+    position: relative;
+}
+
+.login-form .icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted-text);
+}
+
+.login-form input {
+    padding-left: 40px;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.3s;
+    margin-top: 1rem;
+}
+
+.btn-login:hover {
+    opacity: 0.9;
+}
+
+.login-footer {
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: var(--muted-text);
+}
+
+/* ---------------------------------------------------
+   HEADER
+--------------------------------------------------- */
+.main-header {
+    background: var(--primary-color);
+    color: #fff;
+    padding: 1rem 2rem;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo-title {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.logo-title .logo-container {
+    background: #fff;
+    color: var(--primary-color);
+    border-radius: 50%;
+    padding: 0.4rem 0.6rem;
+}
+
+.logo-container i {
+    font-size: 1.2rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-weight: 500;
+}
+
+.user-info small {
+    display: block;
+    font-size: 0.8rem;
+    color: #e1e1e1;
+}
+
+.btn-logout {
+    background: #fff;
+    color: var(--primary-color);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-logout:hover {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+/* ---------------------------------------------------
+   LAYOUT PADRÃO
+--------------------------------------------------- */
+main {
+    flex: 1;
+    max-width: 1200px;
+    width: 100%;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.page-title h2 {
+    font-size: 1.6rem;
+    color: var(--primary-color);
+}
+
+.page-title p {
+    color: var(--muted-text);
+}
+
+/* ---------------------------------------------------
+   BOTÕES
+--------------------------------------------------- */
+.btn {
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.btn-secondary {
+    background: #e3e9f0;
+    color: var(--primary-color);
+}
+
+.btn-secondary:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* ---------------------------------------------------
+   DASHBOARD CARDS
+--------------------------------------------------- */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.card {
+    background: #fff;
+    border-radius: var(--border-radius);
+    padding: 1rem 1.5rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-icon {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.card-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.card-label {
+    font-size: 0.9rem;
+    color: var(--muted-text);
+}
+
+.progress-bar-container {
+    height: 5px;
+    background: #f0f0f0;
+    border-radius: 5px;
+    margin-top: 0.8rem;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--accent-color);
+    width: 60%; /* Exemplo, deve ser dinâmico */
+}
+
+/* ---------------------------------------------------
+   AÇÕES E LISTAS
+--------------------------------------------------- */
+.quick-actions {
+    margin: 2rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.dashboard-lists {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 2rem;
+}
+
+.list-container {
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.5rem;
+}
+
+.list-title {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.patient-card {
+    border-bottom: 1px solid #eee;
+    padding: 0.7rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.patient-card:last-child {
+    border-bottom: none;
+}
+
+.patient-name {
+    font-weight: 600;
+}
+
+.patient-cpf {
+    font-size: 0.85rem;
+    color: var(--muted-text);
+}
+
+.status-tag {
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    display: inline-block;
+}
+
+.tag-late {
+    background: var(--urgent-color);
+    color: #fff;
+}
+
+.tag-soon {
+    background: var(--warning-color);
+    color: #000;
+}
+
+/* ---------------------------------------------------
+   PÁGINA DE PACIENTES
+--------------------------------------------------- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.filters-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.5rem;
+    margin: 2rem 0 1rem;
+    gap: 1rem;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    outline: none;
+    transition: 0.2s;
+}
+
+.search-bar input:focus {
+    border-color: var(--primary-color);
+}
+
+.order-by select {
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+}
+
+.results-count {
+    font-size: 0.9rem;
+    color: var(--muted-text);
+}
+
+.patient-list {
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+}
+
+.list-header,
+.patient-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 160px 160px 120px;
+    padding: 0.8rem 1rem;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    min-width: 750px;
+}
+
+.list-header {
+    background: #f4f6f9;
+    font-weight: 600;
+}
+
+.patient-row:hover {
+    background: #fafafa;
+}
+
+.col-patient {
+    display: flex;
+    flex-direction: column;
+}
+
+.comorbidity-tag {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    color: #fff;
+}
+
+.tag-hipertensao {
+    background: var(--danger-color);
+}
+.tag-diabetes {
+    background: var(--primary-color);
+}
+.tag-gestante {
+    background: var(--accent-color);
+}
+
+.status-dot {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.3rem;
+}
+
+/* Status cores */
+.status-green .status-dot {
+    background: var(--success-color);
+}
+.status-yellow .status-dot {
+    background: var(--warning-color);
+}
+.status-red .status-dot {
+    background: var(--danger-color);
+}
+.status-urgent .status-dot {
+    background: var(--urgent-color);
+}
+
+.action-link {
+    font-weight: 600;
+}
+.action-link:hover {
+    text-decoration: underline;
+}
+
+/* ---------------------------------------------------
+   MODAL CADASTRO
+--------------------------------------------------- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    max-width: 520px;
+    width: 90%;
+    padding: 1.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.modal-header h2 {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--muted-text);
+}
+
+.close-modal-btn:hover {
+    color: var(--danger-color);
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.input-group {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+}
+
+.input-group label {
+    margin-bottom: 2px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    outline: none;
+    transition: 0.2s;
+}
+
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+    border-color: var(--primary-color);
+}
+
+#data-consulta {
+  min-width: 200px;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--muted-text);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+/* ---------------------------------------------------
+   MODAL DETALHES
+--------------------------------------------------- */
+
+#patient-details-modal .modal-content {
+  max-width: 650px;
+}
+
+#patient-details-modal input[readonly],
+#patient-details-modal textarea[readonly],
+#patient-details-modal select[disabled] {
+  background: #f7f7f7;
+  color: #333;
+  cursor: not-allowed;
+}
+
+#patient-details-modal .btn-danger {
+  background: var(--danger-color);
+  color: #fff;
+}
+
+#patient-details-modal .btn-danger:hover {
+  opacity: 0.9;
+}
+
+/* ---------------------------------------------------
+   RESPONSIVIDADE (Melhorado com base no Código 2)
+--------------------------------------------------- */
+@media (max-width: 992px) {
+    .dashboard-lists {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-header {
+        padding: 1rem 1.5rem;
+    }
+    .logo-title h1 {
+        display: none;
+    }
+    .user-info span {
+        display: none;
+    }
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .filters-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    /* Transformar lista de pacientes em cards */
+    .patient-list {
+        overflow-x: hidden;
+    }
+    .list-header {
+        display: none;
+    }
+    .patient-row {
+        grid-template-columns: 1fr; /* Cada item ocupa uma linha */
+        gap: 0.8rem;
+        padding: 1rem;
+        min-width: 0;
+    }
+    .col-patient,
+    .col-status,
+    .col-comorbidity,
+    .col-appointment,
+    .col-actions {
+        display: block;
+        width: 100%;
+        text-align: left;
+    }
+    .col-comorbidity,
+    .col-appointment {
+        color: var(--muted-text);
+        font-size: 0.9rem;
+    }
+    .col-actions {
+        margin-top: 0.5rem;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+        padding: 1.5rem;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        overflow-y: auto;
+    }
+}
+
+/* ---------------------------------------------------
+   ANIMAÇÕES
+--------------------------------------------------- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
