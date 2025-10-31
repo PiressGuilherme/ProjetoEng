@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
@@ -6,7 +7,7 @@
     <title>Pacientes | Gestor de Pacientes UBS</title>
 
     <!-- Estilos principais -->
-    <link rel="stylesheet" href="../static/css/style.css" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
 
     <!-- Ícones Font Awesome -->
     <link
@@ -28,7 +29,7 @@
 
         <div class="user-info">
           <span>Dr. Admin <small>Equipe UBS</small></span>
-          <a href="login.html" class="btn-logout">
+          <a href="{% url 'login' %}" class="btn-logout">
             <i class="fa-solid fa-right-from-bracket"></i> Sair
           </a>
         </div>
@@ -44,7 +45,7 @@
         </div>
 
         <div class="page-actions">
-          <a href="dashboard.html" class="btn btn-secondary">
+          <a href="{% url 'dashboard' %}" class="btn btn-secondary">
             <i class="fa-solid fa-table-columns"></i> Dashboard
           </a>
           <button class="btn btn-primary" id="add-patient-btn-list">
@@ -263,6 +264,6 @@
     </div>
 
     <!-- Script principal -->
-    <script src="../static/js/script.js" defer></script>
+    <script src="{% static 'js/script.js' %}" defer></script>
   </body>
 </html>

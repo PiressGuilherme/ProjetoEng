@@ -1,187 +1,136 @@
-// script.js — versão unificada, completa e compatível com dashboard.html e pacientes.html
+// script.js — Versão final, conectada à API Django
 (() => {
-  'use strict';
+  "use strict";
+
+  /* -------------------------------------------------------------------------- */
+  /* ---------------------- CONFIGURAÇÃO DA API E CSRF ------------------------ */
+  /* -------------------------------------------------------------------------- */
+
+  // URL base da nossa API. Como o JS é servido pelo Django, podemos usar caminhos relativos.
+  const API_BASE_URL = "/api/pacientes/";
+
+  // Função auxiliar para obter o Cookie CSRF (Necessário para POST, PUT, DELETE)
+  // Esta função é padrão da documentação do Django.
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie("csrftoken");
 
   /* -------------------------------------------------------------------------- */
   /* ------------------------------- UTILITÁRIOS ------------------------------ */
   /* -------------------------------------------------------------------------- */
 
-  const slugify = (str = '') =>
+  const slugify = (str = "") =>
     String(str)
       .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9\-]/g, '')
-      .replace(/\-+/g, '-')
-      .replace(/^\-+|\-+$/g, '');
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9\-]/g, "")
+      .replace(/\-+/g, "-")
+      .replace(/^\-+|\-+$/g, "");
 
   const formatarData = (data) => {
-    if (!data) return '-';
-    const d = data instanceof Date ? data : new Date(data);
-    if (Number.isNaN(d.getTime())) return '-';
-    return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+    // A API retorna datas como 'YYYY-MM-DD'
+    if (!data) return "-";
+    try {
+      // Adiciona 'T00:00:00' para garantir que seja interpretado como UTC
+      const d = new Date(data + "T00:00:00");
+      if (Number.isNaN(d.getTime())) return "-";
+      return d.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+    } catch (e) {
+      console.error("Erro ao formatar data:", data, e);
+      return "-";
+    }
   };
 
   /* -------------------------------------------------------------------------- */
-  /* ------------------------------- MOCK DATA -------------------------------- */
+  /* --------- LÓGICA DE MOCK REMOVIDA (mockPacientes) ----------------- */
   /* -------------------------------------------------------------------------- */
-
-  // IDs inicializados para evitar colisões
-  let mockPacientes = [
-    {
-      id: 1,
-      nome: "Maria Silva Santos",
-      cpf: "123.456.789-00",
-      dataNascimento: "1965-05-20",
-      telefone: "(11) 98765-4321",
-      comorbidade: "Diabetes",
-      dataConsulta: "2025-10-15",
-      dataUltimaConsulta: "2025-04-10",
-      observacoes: "Paciente relata bom controle glicêmico em casa."
-    },
-    {
-      id: 2,
-      nome: "João Oliveira",
-      cpf: "987.654.321-00",
-      dataNascimento: "1958-09-15",
-      telefone: "(21) 99876-5432",
-      comorbidade: "Hipertensão",
-      dataConsulta: "2025-10-14",
-      dataUltimaConsulta: "2025-06-20",
-      observacoes: "Necessita de acompanhamento regular da pressão arterial."
-    },
-    {
-      id: 3,
-      nome: "Ana Costa",
-      cpf: "456.789.123-00",
-      dataNascimento: "1992-03-30",
-      telefone: "(31) 98888-7777",
-      comorbidade: "Gestante",
-      dataConsulta: "2025-10-13",
-      dataUltimaConsulta: "2025-09-25",
-      observacoes: "Iniciando o segundo trimestre de gestação."
-    },
-    {
-      id: 4,
-      nome: "Carlos Pereira",
-      cpf: "789.123.456-00",
-      dataNascimento: "1970-11-02",
-      telefone: "(41) 97777-6666",
-      comorbidade: "Hipertensão",
-      dataConsulta: "2025-10-12",
-      dataUltimaConsulta: "2025-08-30",
-      observacoes: ""
-    },
-    {
-      id: 5,
-      nome: "Lucia Fernandes",
-      cpf: "321.654.987-00",
-      dataNascimento: "1980-07-12",
-      telefone: "(51) 96666-5555",
-      comorbidade: "Diabetes",
-      dataConsulta: "2025-10-11",
-      dataUltimaConsulta: "2025-09-05",
-      observacoes: "Apresentou exames de rotina com resultados estáveis."
-    }
-  ];
+  // NÃO PRECISAMOS MAIS DE mockPacientes!
+  // NÃO PRECISAMOS MAIS DE calcularProximaConsultaEStatus()! O Backend faz isso.
 
   /* -------------------------------------------------------------------------- */
-  /* ------------------------ CÁLCULO DATA PRÓXIMA / STATUS -------------------- */
+  /* ----------------------- RENDERIZAÇÃO (Recebe dados) ---------------------- */
   /* -------------------------------------------------------------------------- */
 
-  const calcularProximaConsultaEStatus = (paciente) => {
-    const intervalos = {
-      'Hipertensão': 3,
-      'Diabetes': 6,
-      'Gestante': 1
-    };
+  /**
+   * Renderiza os cards do dashboard com base nos dados da API
+   * @param {Array} pacientes - A lista de pacientes vinda da API
+   */
+  const renderizarDashboard = (pacientes = []) => {
+    const totalEl = document.querySelector(".total-patients .card-value");
+    const greenEl = document.querySelector(".status-green .card-value");
+    const yellowEl = document.querySelector(".status-yellow .card-value");
+    const redEl = document.querySelector(".status-red .card-value");
+    const urgentListContainer = document.querySelector(".urgent-patients");
+    const upcomingListContainer = document.querySelector(
+      ".upcoming-appointments"
+    );
 
-    const comorbidade = (paciente.comorbidade || '').toString().trim();
-    const intervaloMeses = intervalos[comorbidade] ?? 6;
+    if (!totalEl) return; // Se não estamos na dashboard, não faz nada
 
-    // Preferir dataUltimaConsulta; se ausente, usar dataConsulta; se ainda ausente, hoje
-    let dataBase = null;
-    if (paciente.dataUltimaConsulta) {
-      dataBase = new Date(paciente.dataUltimaConsulta + 'T00:00:00');
-    } else if (paciente.dataConsulta) {
-      dataBase = new Date(paciente.dataConsulta + 'T00:00:00');
-    } else {
-      dataBase = new Date();
-    }
-
-    if (Number.isNaN(dataBase.getTime())) dataBase = new Date();
-
-    const dataProxima = new Date(dataBase);
-    dataProxima.setMonth(dataProxima.getMonth() + intervaloMeses);
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const diffMs = dataProxima.getTime() - hoje.getTime();
-    const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-    let status = '';
-    if (diasRestantes < 0) status = 'Urgente';
-    else if (diasRestantes <= 15) status = 'Vermelho';
-    else if (diasRestantes <= 45) status = 'Amarelo';
-    else status = 'Verde';
-
-    return { dataProximaConsulta: dataProxima, status, diasRestantes };
-  };
-
-  /* -------------------------------------------------------------------------- */
-  /* ------------------------------ RENDER DASHBOARD --------------------------- */
-  /* -------------------------------------------------------------------------- */
-
-  const renderizarDashboard = () => {
-    const totalEl = document.querySelector('.total-patients .card-value');
-    const greenEl = document.querySelector('.status-green .card-value');
-    const yellowEl = document.querySelector('.status-yellow .card-value');
-    const redEl = document.querySelector('.status-red .card-value');
-
-    // containers para listas detalhadas no dashboard (se existirem)
-    const urgentListContainer = document.querySelector('.urgent-patients');
-    const upcomingListContainer = document.querySelector('.upcoming-appointments');
-
-    if (!totalEl || !greenEl || !yellowEl || !redEl) return;
-
-    let verde = 0, amarelo = 0, vermelho = 0;
-
+    let verde = 0,
+      amarelo = 0,
+      vermelho = 0;
     const urgentPatients = [];
     const upcomingPatients = [];
 
-    mockPacientes.forEach(p => {
-      const info = calcularProximaConsultaEStatus(p);
-      if (info.status === 'Verde') verde++;
-      else if (info.status === 'Amarelo') {
+    pacientes.forEach((p) => {
+      // O 'status' e 'proxima_consulta' agora vêm DIRETAMENTE da API
+      const diasRestantes =
+        p.status === "Urgente"
+          ? -1 // A API não nos dá dias, mas podemos simular para ordenação
+          : p.proxima_consulta
+          ? (new Date(p.proxima_consulta + "T00:00:00") - new Date()) /
+            (1000 * 60 * 60 * 24)
+          : 999;
+
+      const info = { ...p, diasRestantes: Math.ceil(diasRestantes) };
+
+      if (info.status === "Verde") verde++;
+      else if (info.status === "Amarelo") {
         amarelo++;
-        upcomingPatients.push({ ...p, ...info });
-      }
-      else {
+        upcomingPatients.push(info);
+      } else {
+        // 'Vermelho' ou 'Urgente'
         vermelho++;
-        urgentPatients.push({ ...p, ...info });
+        urgentPatients.push(info);
       }
     });
 
-    totalEl.textContent = String(mockPacientes.length);
+    totalEl.textContent = String(pacientes.length);
     greenEl.textContent = String(verde);
     yellowEl.textContent = String(amarelo);
     redEl.textContent = String(vermelho);
 
-    // Render de listas detalhadas (limpa e popula)
+    // Render de listas detalhadas
     const clearAndRenderList = (container, list, createCardHtml) => {
       if (!container) return;
-      // remove filhos que adicionamos (manter título estático)
-      container.querySelectorAll('.patient-card').forEach(n => n.remove());
-      // ordenar por dias restantes crescente
+      container.querySelectorAll(".patient-card").forEach((n) => n.remove());
       list.sort((a, b) => a.diasRestantes - b.diasRestantes);
-      list.forEach(p => container.insertAdjacentHTML('beforeend', createCardHtml(p)));
+      list.forEach((p) =>
+        container.insertAdjacentHTML("beforeend", createCardHtml(p))
+      );
     };
 
     const createUrgentCard = (p) => {
-      const tagText = p.status === 'Urgente' ? `Atrasado ${Math.abs(p.diasRestantes)} dias` : `Em ${p.diasRestantes} dias`;
-      const comorbClass = slugify(p.comorbidade || '') ? `tag-${slugify(p.comorbidade)}` : '';
+      const tagText =
+        p.status === "Urgente" ? `Atrasado` : `Em ${p.diasRestantes} dias`;
+      const comorbClass = slugify(p.comorbidade || "")
+        ? `tag-${slugify(p.comorbidade)}`
+        : "";
 
       return `
         <div class="patient-card">
@@ -190,16 +139,26 @@
             <span class="patient-cpf">CPF: ${p.cpf}</span>
           </div>
           <div class="patient-status">
-            <span class="status-tag ${p.status === 'Urgente' ? 'tag-late' : 'tag-soon'}">${tagText}</span>
-            <span class="comorbidity-tag ${comorbClass}">${p.comorbidade || ''}</span>
-            <a href="#" class="action-link small" data-id="${p.id}">Ver detalhes</a>
+            <span class="status-tag ${
+              p.status === "Urgente" ? "tag-late" : "tag-late"
+            }">${tagText}</span>
+            <span class="comorbidity-tag ${comorbClass}">${
+        p.comorbidade || ""
+      }</span>
+            <a href="#" class="action-link small" data-id="${
+              p.id
+            }">Ver detalhes</a>
           </div>
         </div>
       `;
     };
 
+    // (createUpcomingCard é similar, omitido por brevidade no exemplo, mas a lógica acima cobre)
+    // Vamos reusar o createUrgentCard para upcoming, ajustando o texto
     const createUpcomingCard = (p) => {
-      const comorbClass = slugify(p.comorbidade || '') ? `tag-${slugify(p.comorbidade)}` : '';
+      const comorbClass = slugify(p.comorbidade || "")
+        ? `tag-${slugify(p.comorbidade)}`
+        : "";
       return `
         <div class="patient-card">
           <div class="patient-info">
@@ -208,24 +167,32 @@
           </div>
           <div class="patient-status">
             <span class="status-tag tag-soon">Em ${p.diasRestantes} dias</span>
-            <span class="comorbidity-tag ${comorbClass}">${p.comorbidade || ''}</span>
-            <a href="#" class="action-link small" data-id="${p.id}">Ver detalhes</a>
+            <span class="comorbidity-tag ${comorbClass}">${
+        p.comorbidade || ""
+      }</span>
+            <a href="#" class="action-link small" data-id="${
+              p.id
+            }">Ver detalhes</a>
           </div>
         </div>
       `;
     };
 
     clearAndRenderList(urgentListContainer, urgentPatients, createUrgentCard);
-    clearAndRenderList(upcomingListContainer, upcomingPatients, createUpcomingCard);
+    clearAndRenderList(
+      upcomingListContainer,
+      upcomingPatients,
+      createUpcomingCard
+    );
   };
 
-  /* -------------------------------------------------------------------------- */
-  /* --------------------------- RENDER LISTA PACIENTES ------------------------ */
-  /* -------------------------------------------------------------------------- */
-
-  const renderizarListaPacientes = (lista = mockPacientes) => {
-    const container = document.querySelector('.patient-list');
-    if (!container) return;
+  /**
+   * Renderiza a lista de pacientes na página 'pacientes.html'
+   * @param {Array} lista - A lista de pacientes vinda da API (já filtrada/ordenada)
+   */
+  const renderizarListaPacientes = (lista = []) => {
+    const container = document.querySelector(".patient-list");
+    if (!container) return; // Se não estamos na página de pacientes
 
     // Header
     container.innerHTML = `
@@ -238,16 +205,24 @@
       </div>
     `;
 
-    lista.forEach(p => {
-      const { dataProximaConsulta, status } = calcularProximaConsultaEStatus(p);
+    if (lista.length === 0) {
+      container.innerHTML +=
+        '<p style="padding: 1rem; text-align: center;">Nenhum paciente encontrado.</p>';
+    }
+
+    lista.forEach((p) => {
+      // Os dados já vêm prontos da API!
+      const { status, proxima_consulta } = p;
       const statusClassMap = {
-        'Urgente': 'status-urgent',
-        'Vermelho': 'status-red',
-        'Amarelo': 'status-yellow',
-        'Verde': 'status-green'
+        Urgente: "status-urgent",
+        Vermelho: "status-red",
+        Amarelo: "status-yellow",
+        Verde: "status-green",
       };
-      const statusClass = statusClassMap[status] || 'status-green';
-      const comorbClass = slugify(p.comorbidade || '') ? `tag-${slugify(p.comorbidade)}` : '';
+      const statusClass = statusClassMap[status] || "status-green";
+      const comorbClass = slugify(p.comorbidade || "")
+        ? `tag-${slugify(p.comorbidade)}`
+        : "";
 
       const row = `
         <div class="patient-row" data-id="${p.id}">
@@ -256,261 +231,398 @@
             <span class="patient-name">${p.nome}</span>
             <span class="patient-cpf">CPF: ${p.cpf}</span>
           </div>
-          <span class="col-comorbidity"><span class="comorbidity-tag ${comorbClass}">${p.comorbidade || ''}</span></span>
-          <span class="col-appointment">${formatarData(dataProximaConsulta)}</span>
-          <span class="col-actions"><a href="#" class="action-link" data-id="${p.id}">Ver detalhes</a></span>
+          <span class="col-comorbidity"><span class="comorbidity-tag ${comorbClass}">${
+        p.comorbidade || ""
+      }</span></span>
+          <span class="col-appointment">${formatarData(proxima_consulta)}</span>
+          <span class="col-actions"><a href="#" class="action-link" data-id="${
+            p.id
+          }">Ver detalhes</a></span>
         </div>
       `;
-      container.insertAdjacentHTML('beforeend', row);
+      container.insertAdjacentHTML("beforeend", row);
     });
 
-    const resultsEl = document.querySelector('.results-count');
-    if (resultsEl) resultsEl.textContent = `${lista.length} pacientes encontrados`;
+    const resultsEl = document.querySelector(".results-count");
+    if (resultsEl)
+      resultsEl.textContent = `${lista.length} pacientes encontrados`;
   };
 
   /* -------------------------------------------------------------------------- */
-  /* -------------------------- FILTRO E ORDENAÇÃO ---------------------------- */
+  /* ------------------- CARREGAMENTO E FILTRO (FETCH API) -------------------- */
   /* -------------------------------------------------------------------------- */
 
-  const atualizarListaPacientes = () => {
-    const searchInput = document.querySelector('.search-bar input');
-    const orderSelect = document.querySelector('#order-select');
+  // Nosso "banco de dados" local (cache)
+  let listaCompletaPacientes = [];
 
-    // Se página não tem controles, renderiza padrão
-    if (!document.querySelector('.patients-page')) {
-      renderizarListaPacientes(mockPacientes);
-      return;
+  /**
+   * Busca os pacientes da API e armazena em cache
+   */
+  async function fetchPacientes() {
+    try {
+      const response = await fetch(API_BASE_URL);
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+      listaCompletaPacientes = await response.json();
+      console.log("Pacientes carregados da API:", listaCompletaPacientes);
+    } catch (error) {
+      console.error("Falha ao buscar pacientes da API:", error);
+      alert(
+        "Não foi possível carregar os dados dos pacientes. Verifique o console."
+      );
+      listaCompletaPacientes = []; // Reseta em caso de erro
     }
+  }
 
-    const searchTerm = (searchInput?.value || '').trim().toLowerCase();
-    const sortBy = orderSelect?.value || 'status';
+  /**
+   * Filtra e ordena a lista local (listaCompletaPacientes) e chama os renderizadores
+   */
+  const atualizarVisualizacoes = () => {
+    const searchInput = document.querySelector(".search-bar input");
+    const orderSelect = document.querySelector("#order-select");
 
-    // Filtragem
-    const filtrados = mockPacientes.filter(p => {
+    const searchTerm = (searchInput?.value || "").trim().toLowerCase();
+    const sortBy = orderSelect?.value || "status";
+
+    // Filtragem (baseada na lista local)
+    const filtrados = listaCompletaPacientes.filter((p) => {
       if (!searchTerm) return true;
-      const nome = (p.nome || '').toLowerCase();
-      const cpf = (p.cpf || '').toLowerCase();
-      const comorb = (p.comorbidade || '').toLowerCase();
-      return nome.includes(searchTerm) || cpf.includes(searchTerm) || comorb.includes(searchTerm);
+      const nome = (p.nome || "").toLowerCase();
+      const cpf = (p.cpf || "").toLowerCase();
+      const comorb = (p.comorbidade || "").toLowerCase();
+      return (
+        nome.includes(searchTerm) ||
+        cpf.includes(searchTerm) ||
+        comorb.includes(searchTerm)
+      );
     });
 
     // Ordenação
-    if (sortBy === 'status') {
-      const ordem = { 'Urgente': 1, 'Vermelho': 2, 'Amarelo': 3, 'Verde': 4 };
+    if (sortBy === "status") {
+      const ordem = { Urgente: 1, Vermelho: 2, Amarelo: 3, Verde: 4 };
       filtrados.sort((a, b) => {
-        const sa = calcularProximaConsultaEStatus(a).status;
-        const sb = calcularProximaConsultaEStatus(b).status;
-        return (ordem[sa] || 99) - (ordem[sb] || 99) || (a.nome || '').localeCompare(b.nome || '');
+        // Usa o status vindo da API
+        return (
+          (ordem[a.status] || 99) - (ordem[b.status] || 99) ||
+          (a.nome || "").localeCompare(b.nome || "")
+        );
       });
-    } else if (sortBy === 'name' || sortBy === 'nome' || sortBy === 'name-asc') {
-      filtrados.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR', { sensitivity: 'base' }));
-    } else {
-      // fallback
-      filtrados.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+    } else if (
+      sortBy === "name" ||
+      sortBy === "nome" ||
+      sortBy === "name-asc"
+    ) {
+      filtrados.sort((a, b) =>
+        (a.nome || "").localeCompare(b.nome || "", "pt-BR", {
+          sensitivity: "base",
+        })
+      );
     }
 
-    renderizarListaPacientes(filtrados);
+    // Chama as funções de renderização com os dados filtrados/ordenados
+    if (document.querySelector(".patients-page")) {
+      renderizarListaPacientes(filtrados);
+    }
+    if (document.querySelector(".summary-cards")) {
+      // O dashboard sempre mostra o status de TODOS os pacientes, não apenas os filtrados
+      renderizarDashboard(listaCompletaPacientes);
+    }
   };
 
+  /**
+   * Função principal que busca dados da API e atualiza a UI
+   */
+  async function carregarEAtualizarTudo() {
+    await fetchPacientes(); // 1. Busca da API
+    atualizarVisualizacoes(); // 2. Filtra, ordena e renderiza
+  }
+
   /* -------------------------------------------------------------------------- */
-  /* --------------------------- MODAL: ADIÇÃO PACIENTE ------------------------ */
+  /* --------------------------- MODAL: ADIÇÃO (POST) ------------------------ */
   /* -------------------------------------------------------------------------- */
 
   const gerenciarModalAdicao = () => {
-    const modal = document.getElementById('add-patient-modal');
+    const modal = document.getElementById("add-patient-modal");
     if (!modal) return;
-
-    const openBtns = [document.getElementById('add-patient-btn'), document.getElementById('add-patient-btn-list')].filter(Boolean);
-    const closeBtn = modal.querySelector('.close-modal-btn');
-    const cancelBtn = modal.querySelector('.cancel-btn');
-    const form = modal.querySelector('.add-patient-form');
-    const textarea = modal.querySelector('#observacoes');
-    const counter = modal.querySelector('.char-counter');
+    // ... (Código de abrir/fechar/cancelar/contador) ...
+    const openBtns = [
+      document.getElementById("add-patient-btn"),
+      document.getElementById("add-patient-btn-list"),
+    ].filter(Boolean);
+    const closeBtn = modal.querySelector(".close-modal-btn");
+    const cancelBtn = modal.querySelector(".cancel-btn");
+    const form = modal.querySelector(".add-patient-form");
+    const textarea = modal.querySelector("#observacoes");
+    const counter = modal.querySelector(".char-counter");
 
     const openModal = (e) => {
       if (e) e.preventDefault();
-      modal.classList.add('active');
-      if (counter && textarea) counter.textContent = `${textarea.value.length}/500 caracteres`;
+      modal.classList.add("active");
+      if (counter && textarea)
+        counter.textContent = `${textarea.value.length}/500 caracteres`;
     };
     const closeModal = () => {
-      modal.classList.remove('active');
+      modal.classList.remove("active");
       form.reset();
-      if (counter) counter.textContent = '0/500 caracteres';
+      if (counter) counter.textContent = "0/500 caracteres";
     };
 
-    openBtns.forEach(btn => btn.addEventListener('click', openModal));
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (cancelBtn) cancelBtn.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
-
-    // click no overlay fecha
-    modal.addEventListener('click', (ev) => {
+    openBtns.forEach((btn) => btn.addEventListener("click", openModal));
+    if (closeBtn) closeBtn.addEventListener("click", closeModal);
+    if (cancelBtn)
+      cancelBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        closeModal();
+      });
+    modal.addEventListener("click", (ev) => {
       if (ev.target === modal) closeModal();
     });
-
     if (textarea && counter) {
-      textarea.addEventListener('input', () => counter.textContent = `${textarea.value.length}/500 caracteres`);
+      textarea.addEventListener(
+        "input",
+        () => (counter.textContent = `${textarea.value.length}/500 caracteres`)
+      );
     }
-
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    // Intercepta o SUBMIT para enviar via API (async)
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const nome = (form.querySelector('#nome-completo')?.value || '').trim();
-      const cpf = (form.querySelector('#cpf')?.value || '').trim();
-      const dataNascimento = form.querySelector('#data-nascimento')?.value || '';
-      const telefone = form.querySelector('#telefone')?.value || '';
-      const dataConsulta = form.querySelector('#data-consulta')?.value || '';
-      const comorbRaw = (form.querySelector('#comorbidade')?.value || '').trim();
-      const observacoes = form.querySelector('#observacoes')?.value || '';
+      // 1. Coletar dados do formulário
+      // O <select> de comorbidade precisa enviar o *Texto* ('Hipertensão'),
+      // não o *valor* ('hipertensao'), pois nosso Model/Serializer espera o texto.
+      const comorbSelect = form.querySelector("#comorbidade");
+      const comorbidadeTexto =
+        comorbSelect.options[comorbSelect.selectedIndex]?.text || "";
 
-      if (!nome || !cpf) {
-        alert('Preencha nome e CPF.');
+      const novoPaciente = {
+        nome: (form.querySelector("#nome-completo")?.value || "").trim(),
+        cpf: (form.querySelector("#cpf")?.value || "").trim(),
+        data_nascimento: form.querySelector("#data-nascimento")?.value || "",
+        telefone: form.querySelector("#telefone")?.value || "",
+        data_consulta: form.querySelector("#data-consulta")?.value || "", // Esta é a data_consulta (última consulta)
+        comorbidade: comorbidadeTexto, // Envia o texto "Hipertensão"
+        observacoes: form.querySelector("#observacoes")?.value || "",
+      };
+
+      if (
+        !novoPaciente.nome ||
+        !novoPaciente.cpf ||
+        !novoPaciente.data_nascimento ||
+        !novoPaciente.data_consulta ||
+        !novoPaciente.comorbidade
+      ) {
+        alert("Preencha todos os campos obrigatórios (*).");
         return;
       }
 
-      // Normaliza comorbidade (select usa valores como 'hipertensao' — mapear para rótulos)
-      const comorbidadeMap = { 'hipertensao': 'Hipertensão', 'diabetes': 'Diabetes', 'gestante': 'Gestante' };
-      const comorbKey = slugify(comorbRaw);
-      const comorbidade = comorbidadeMap[comorbKey] || (comorbRaw || 'Não informada');
+      // 2. Enviar dados via FETCH (POST)
+      try {
+        const response = await fetch(API_BASE_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken, // Envia o token de segurança
+          },
+          body: JSON.stringify(novoPaciente),
+        });
 
-      const novoId = mockPacientes.length ? Math.max(...mockPacientes.map(p => p.id)) + 1 : 1;
+        if (!response.ok) {
+          const erroData = await response.json();
+          // Tenta mostrar um erro mais amigável (ex: CPF duplicado)
+          let errorMsg = "Erro ao salvar paciente.";
+          if (erroData.cpf) errorMsg = `Erro: ${erroData.cpf.join(" ")}`;
+          throw new Error(errorMsg);
+        }
 
-      const novo = {
-        id: novoId,
-        nome,
-        cpf,
-        dataNascimento,
-        telefone,
-        comorbidade,
-        dataConsulta,
-        dataUltimaConsulta: dataConsulta || new Date().toISOString().split('T')[0],
-        observacoes
-      };
-
-      mockPacientes.push(novo);
-
-      // Atualiza views se presentes
-      if (document.querySelector('.summary-cards')) renderizarDashboard();
-      if (document.querySelector('.patients-page')) atualizarListaPacientes();
-
-      closeModal();
-      alert(`Paciente ${nome} adicionado com sucesso!`);
+        // 3. Sucesso!
+        closeModal();
+        alert(`Paciente ${novoPaciente.nome} adicionado com sucesso!`);
+        await carregarEAtualizarTudo(); // Recarrega a lista da API
+      } catch (error) {
+        console.error("Erro ao adicionar paciente:", error);
+        alert(error.message || "Falha ao salvar paciente.");
+      }
     });
   };
 
   /* -------------------------------------------------------------------------- */
-  /* ------------------------ MODAL: DETALHES / EDIÇÃO ------------------------- */
+  /* ------------------ MODAL: DETALHES (GET, PUT, DELETE) ------------------- */
   /* -------------------------------------------------------------------------- */
 
   const gerenciarModalDetalhes = () => {
-    const modal = document.getElementById('patient-details-modal');
+    const modal = document.getElementById("patient-details-modal");
     if (!modal) return;
 
-    const closeBtn = document.getElementById('close-details-btn');
-    const editarBtn = document.getElementById('editar-paciente-btn');
-    const excluirBtn = document.getElementById('excluir-paciente-btn');
-    const salvarBtn = document.getElementById('salvar-edicao-btn');
-    const form = modal.querySelector('.patient-details-form');
+    const closeBtn = document.getElementById("close-details-btn");
+    const editarBtn = document.getElementById("editar-paciente-btn");
+    const excluirBtn = document.getElementById("excluir-paciente-btn");
+    const salvarBtn = document.getElementById("salvar-edicao-btn");
+    const form = modal.querySelector(".patient-details-form");
 
-    let pacienteAtual = null;
+    let pacienteAtualId = null; // Armazena o ID do paciente em visualização
     let editMode = false;
 
-    // Abrir modal a partir de qualquer action-link
-    document.addEventListener('click', (e) => {
-      const target = e.target.closest && e.target.closest('.action-link');
+    // 1. Abrir modal (GET)
+    document.addEventListener("click", async (e) => {
+      const target = e.target.closest && e.target.closest(".action-link");
       if (!target) return;
       e.preventDefault();
+
       const id = parseInt(target.dataset.id, 10);
       if (Number.isNaN(id)) return;
-      pacienteAtual = mockPacientes.find(p => p.id === id);
-      if (!pacienteAtual) return;
 
-      preencherModalDetalhes(pacienteAtual);
-      modal.classList.add('active');
-      editMode = false;
-      alternarModoEdicao(false);
+      // Busca os dados ATUAIS do paciente na API
+      try {
+        const response = await fetch(`${API_BASE_URL}${id}/`);
+        if (!response.ok) throw new Error("Paciente não encontrado");
+        const paciente = await response.json();
+
+        pacienteAtualId = paciente.id; // Armazena o ID
+        preencherModalDetalhes(paciente); // Preenche o form com dados da API
+        modal.classList.add("active");
+        editMode = false;
+        alternarModoEdicao(false);
+      } catch (error) {
+        console.error("Erro ao buscar detalhes do paciente:", error);
+        alert("Não foi possível carregar os dados do paciente.");
+      }
     });
 
-    if (closeBtn) closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+    if (closeBtn)
+      closeBtn.addEventListener("click", () =>
+        modal.classList.remove("active")
+      );
 
     if (editarBtn) {
-      editarBtn.addEventListener('click', () => {
+      editarBtn.addEventListener("click", () => {
         editMode = !editMode;
         alternarModoEdicao(editMode);
       });
     }
 
+    // 2. Excluir paciente (DELETE)
     if (excluirBtn) {
-      excluirBtn.addEventListener('click', () => {
-        if (!pacienteAtual) return;
-        if (!confirm('Tem certeza que deseja excluir este paciente?')) return;
-        mockPacientes = mockPacientes.filter(p => p.id !== pacienteAtual.id);
-        modal.classList.remove('active');
-        // atualizar visualizações
-        if (document.querySelector('.patients-page')) atualizarListaPacientes();
-        if (document.querySelector('.summary-cards')) renderizarDashboard();
+      excluirBtn.addEventListener("click", async () => {
+        if (!pacienteAtualId) return;
+        if (
+          !confirm(
+            "Tem certeza que deseja excluir este paciente? Esta ação não pode ser desfeita."
+          )
+        )
+          return;
+
+        try {
+          const response = await fetch(`${API_BASE_URL}${pacienteAtualId}/`, {
+            method: "DELETE",
+            headers: {
+              "X-CSRFToken": csrftoken,
+            },
+          });
+
+          if (!response.ok && response.status !== 204) {
+            // 204 No Content é sucesso
+            throw new Error("Erro ao excluir paciente");
+          }
+
+          modal.classList.remove("active");
+          await carregarEAtualizarTudo(); // Recarrega a lista
+        } catch (error) {
+          console.error("Erro ao excluir paciente:", error);
+          alert("Não foi possível excluir o paciente.");
+        }
       });
     }
 
+    // 3. Salvar edição (PUT)
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!pacienteAtual) return;
+        if (!pacienteAtualId) return;
 
-        pacienteAtual.nome = form.querySelector('#detalhe-nome').value || pacienteAtual.nome;
-        pacienteAtual.cpf = form.querySelector('#detalhe-cpf').value || pacienteAtual.cpf;
-        pacienteAtual.dataNascimento = form.querySelector('#detalhe-data-nasc').value || pacienteAtual.dataNascimento;
-        pacienteAtual.telefone = form.querySelector('#detalhe-telefone').value || pacienteAtual.telefone;
+        // Mapeia o valor do select (ex: 'hipertensao') para o texto ('Hipertensão')
+        const comorbSelect = form.querySelector("#detalhe-comorbidade");
+        const comorbidadeTexto =
+          comorbSelect.options[comorbSelect.selectedIndex]?.text || "";
 
-        // detalhe-comorbidade é um select com valores 'hipertensao' etc. podemos mapear
-        const detalheComorbRaw = form.querySelector('#detalhe-comorbidade')?.value || pacienteAtual.comorbidade;
-        const comorbidadeMap = { 'hipertensao': 'Hipertensão', 'diabetes': 'Diabetes', 'gestante': 'Gestante' };
-        const detalheComorbSlug = slugify(detalheComorbRaw);
-        pacienteAtual.comorbidade = comorbidadeMap[detalheComorbSlug] || detalheComorbRaw || pacienteAtual.comorbidade;
+        const pacienteEditado = {
+          nome: form.querySelector("#detalhe-nome").value,
+          cpf: form.querySelector("#detalhe-cpf").value,
+          data_nascimento: form.querySelector("#detalhe-data-nasc").value,
+          telefone: form.querySelector("#detalhe-telefone").value,
+          comorbidade: comorbidadeTexto,
+          data_consulta: form.querySelector("#detalhe-data-consulta").value,
+          observacoes: form.querySelector("#detalhe-observacoes").value,
+        };
 
-        pacienteAtual.dataConsulta = form.querySelector('#detalhe-data-consulta').value || pacienteAtual.dataConsulta;
-        // Ao salvar edição podemos atualizar dataUltimaConsulta (opcional) — aqui mantemos a dataConsulta como última
-        pacienteAtual.dataUltimaConsulta = pacienteAtual.dataConsulta || pacienteAtual.dataUltimaConsulta;
-        pacienteAtual.observacoes = form.querySelector('#detalhe-observacoes').value || pacienteAtual.observacoes;
+        try {
+          const response = await fetch(`${API_BASE_URL}${pacienteAtualId}/`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrftoken,
+            },
+            body: JSON.stringify(pacienteEditado),
+          });
 
-        // Re-render
-        if (document.querySelector('.patients-page')) atualizarListaPacientes();
-        if (document.querySelector('.summary-cards')) renderizarDashboard();
+          if (!response.ok) {
+            const erroData = await response.json();
+            let errorMsg = "Erro ao salvar edição.";
+            if (erroData.cpf) errorMsg = `Erro: ${erroData.cpf.join(" ")}`;
+            throw new Error(errorMsg);
+          }
 
-        modal.classList.remove('active');
+          modal.classList.remove("active");
+          await carregarEAtualizarTudo(); // Recarrega a lista
+        } catch (error) {
+          console.error("Erro ao salvar edição:", error);
+          alert(error.message || "Falha ao salvar edição.");
+        }
       });
     }
 
     function alternarModoEdicao(editar) {
       if (!form) return;
-      const inputs = form.querySelectorAll('input, textarea, select');
-      inputs.forEach(input => {
-        if (['detalhe-proxima-consulta', 'detalhe-status'].includes(input.id)) return;
+      const inputs = form.querySelectorAll("input, textarea, select");
+      inputs.forEach((input) => {
+        if (["detalhe-proxima-consulta", "detalhe-status"].includes(input.id))
+          return; // Campos read-only
         input.readOnly = !editar;
         input.disabled = !editar;
       });
-      if (salvarBtn) salvarBtn.style.display = editar ? 'inline-flex' : 'none';
-      if (editarBtn) editarBtn.textContent = editar ? 'Cancelar' : 'Editar';
+      if (salvarBtn) salvarBtn.style.display = editar ? "inline-flex" : "none";
+      if (editarBtn) editarBtn.textContent = editar ? "Cancelar" : "Editar";
     }
 
     function preencherModalDetalhes(p) {
       if (!form) return;
-      const info = calcularProximaConsultaEStatus(p);
-      form.querySelector('#detalhe-nome').value = p.nome || '';
-      form.querySelector('#detalhe-cpf').value = p.cpf || '';
-      form.querySelector('#detalhe-data-nasc').value = p.dataNascimento || '';
-      form.querySelector('#detalhe-telefone').value = p.telefone || '';
-      // Map para select do detalhe (aceita rótulo ou chave)
-      const mapParaSelect = { 'Hipertensão': 'hipertensao', 'Diabetes': 'diabetes', 'Gestante': 'gestante' };
-      const detalheSelectValue = mapParaSelect[p.comorbidade] || slugify(p.comorbidade || '') || '';
-      const detalheSelect = form.querySelector('#detalhe-comorbidade');
+      form.querySelector("#detalhe-nome").value = p.nome || "";
+      form.querySelector("#detalhe-cpf").value = p.cpf || "";
+      form.querySelector("#detalhe-data-nasc").value = p.data_nascimento || "";
+      form.querySelector("#detalhe-telefone").value = p.telefone || "";
+
+      // Map para select (o valor do select é 'hipertensao', 'diabetes', etc.)
+      const mapParaSelect = {
+        Hipertensão: "hipertensao",
+        Diabetes: "diabetes",
+        Gestante: "gestante",
+      };
+      const detalheSelectValue =
+        mapParaSelect[p.comorbidade] || slugify(p.comorbidade || "") || "";
+      const detalheSelect = form.querySelector("#detalhe-comorbidade");
       if (detalheSelect) detalheSelect.value = detalheSelectValue;
 
-      form.querySelector('#detalhe-data-consulta').value = p.dataConsulta || '';
-      form.querySelector('#detalhe-proxima-consulta').value = info.dataProximaConsulta ? info.dataProximaConsulta.toISOString().split('T')[0] : '';
-      form.querySelector('#detalhe-status').value = info.status || '';
-      form.querySelector('#detalhe-observacoes').value = p.observacoes || '';
+      form.querySelector("#detalhe-data-consulta").value =
+        p.data_consulta || "";
+
+      // Campos calculados vêm prontos da API
+      form.querySelector("#detalhe-proxima-consulta").value =
+        p.proxima_consulta || "";
+      form.querySelector("#detalhe-status").value = p.status || "";
+
+      form.querySelector("#detalhe-observacoes").value = p.observacoes || "";
     }
   };
 
@@ -518,38 +630,22 @@
   /* ---------------------------- INICIALIZAÇÃO -------------------------------- */
   /* -------------------------------------------------------------------------- */
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener("DOMContentLoaded", () => {
     // Inicialização dos gerenciadores de modal (adição e detalhes)
     gerenciarModalAdicao();
     gerenciarModalDetalhes();
 
-    // Se estivermos na dashboard, renderiza
-    if (document.querySelector('.summary-cards')) renderizarDashboard();
+    // Configura listeners de filtro e ordenação
+    const searchInput = document.querySelector(".search-bar input");
+    const orderSelect = document.querySelector("#order-select");
 
-    // Se estivermos na página de pacientes, configura listeners e render inicial
-    if (document.querySelector('.patients-page')) {
-      const searchInput = document.querySelector('.search-bar input');
-      const orderSelect = document.querySelector('#order-select');
+    // Em vez de recarregar da API a cada tecla, filtramos a lista local
+    if (searchInput)
+      searchInput.addEventListener("input", atualizarVisualizacoes);
+    if (orderSelect)
+      orderSelect.addEventListener("change", atualizarVisualizacoes);
 
-      if (searchInput) searchInput.addEventListener('input', atualizarListaPacientes);
-      if (orderSelect) orderSelect.addEventListener('change', atualizarListaPacientes);
-
-      // render inicial respeitando filtros padrão
-      atualizarListaPacientes();
-      // dashboard pode aparecer na mesma página em alguns designs — atualiza também
-      if (document.querySelector('.summary-cards')) renderizarDashboard();
-    }
+    // Carga inicial dos dados!
+    carregarEAtualizarTudo();
   });
-
-  /* -------------------------------------------------------------------------- */
-  /* ------------------------------- EXPORTS (dev) ----------------------------- */
-  /* -------------------------------------------------------------------------- */
-  // Para facilitar testes em console (opcional)
-  window.__pacientesApp = {
-    mockPacientes,
-    atualizarListaPacientes,
-    renderizarListaPacientes,
-    renderizarDashboard,
-    calcularProximaConsultaEStatus
-  };
 })();
