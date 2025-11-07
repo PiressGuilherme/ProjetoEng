@@ -1,4 +1,4 @@
-// script.js — Versão com Autenticação, Toastify, Barras Dinâmicas e Máscaras
+// script.js — Versão com Endereço e Link do Mapa
 (() => {
   "use strict";
 
@@ -344,10 +344,12 @@
 
     const filtrados = listaCompletaPacientes.filter((p) => {
       if (!searchTerm) return true;
+      // Busca agora inclui o endereço
       return (
         p.nome.toLowerCase().includes(searchTerm) ||
         p.cpf.includes(searchTerm) ||
-        p.comorbidade.toLowerCase().includes(searchTerm)
+        p.comorbidade.toLowerCase().includes(searchTerm) ||
+        (p.endereco && p.endereco.toLowerCase().includes(searchTerm))
       );
     });
 
@@ -390,21 +392,28 @@
     if (addModal) {
       const form = addModal.querySelector("form");
 
-      // --- INÍCIO DA LÓGICA DE MÁSCARA (Funcionalidade 2) ---
-      if (typeof IMask !== 'undefined') {
+      let cpfAddMask, telAddMask;
+
+      if (typeof IMask !== "undefined") {
         const cpfInput = form.querySelector("#cpf");
         const telInput = form.querySelector("#telefone");
-        
+
         if (cpfInput) {
-          IMask(cpfInput, { mask: '000.000.000-00' });
+          // Armazenamos a instância da máscara
+          cpfAddMask = IMask(cpfInput, { mask: "000.000.000-00" });
         }
         if (telInput) {
-          IMask(telInput, { mask: '(00) 00000-0000' });
+          // --- ALTERAÇÃO: MÁSCARA DE TELEFONE 10 OU 11 DÍGITOS ---
+          telAddMask = IMask(telInput, {
+            mask: [
+              { mask: "(00) 0000-0000" }, // Fixo
+              { mask: "(00) 00000-0000" }, // Celular
+            ],
+          });
         }
       } else {
         console.warn("Biblioteca IMask.js não carregada.");
       }
-      // --- FIM DA LÓGICA DE MÁSCARA ---
 
       const closeBtns = addModal.querySelectorAll(
         ".close-modal-btn, .cancel-btn"
@@ -420,40 +429,66 @@
         btn.addEventListener("click", () => {
           addModal.classList.remove("active");
           form.reset();
+          if (cpfAddMask) cpfAddMask.value = "";
+          if (telAddMask) telAddMask.value = "";
         })
       );
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const comorbSelect = form.querySelector("#comorbidade");
-        
-        // Pega o valor "puro" (sem máscara) do IMask
-        const cpfInput = form.querySelector("#cpf");
-        const telInput = form.querySelector("#telefone");
-        const cpfValue = cpfInput.imask ? cpfInput.imask.unmaskedValue : cpfInput.value;
-        const telValue = telInput.imask ? telInput.imask.unmaskedValue : telInput.value;
+
+        const cpfValue = cpfAddMask
+          ? cpfAddMask.unmaskedValue
+          : form.querySelector("#cpf").value;
+        const telValue = telAddMask
+          ? telAddMask.unmaskedValue
+          : form.querySelector("#telefone").value;
 
         const novoPaciente = {
           nome: form.querySelector("#nome-completo").value.trim(),
           cpf: cpfValue, // Envia o valor sem máscara
           data_nascimento: form.querySelector("#data-nascimento").value,
           telefone: telValue, // Envia o valor sem máscara
+          endereco: form.querySelector("#endereco").value.trim(), // --- NOVO CAMPO ADICIONADO ---
           data_consulta: form.querySelector("#data-consulta").value,
           comorbidade:
             comorbSelect.options[comorbSelect.selectedIndex]?.text || "",
           observacoes: form.querySelector("#observacoes").value,
         };
 
-        if (!novoPaciente.nome || !novoPaciente.cpf || !novoPaciente.data_nascimento || !novoPaciente.data_consulta || !novoPaciente.comorbidade) {
-            showToast("Por favor, preencha todos os campos obrigatórios.", 'warning');
-            return;
+        if (
+          !novoPaciente.nome ||
+          !novoPaciente.cpf ||
+          !novoPaciente.data_nascimento ||
+          !novoPaciente.data_consulta ||
+          !novoPaciente.comorbidade ||
+          !novoPaciente.endereco // --- VALIDAÇÃO DE ENDEREÇO OBRIGATÓRIO ---
+        ) {
+          showToast(
+            "Por favor, preencha todos os campos obrigatórios.",
+            "warning"
+          );
+          return;
         }
-        
-        // Validação simples de CPF
+
         if (cpfValue.length !== 11) {
-            showToast("CPF inválido. Deve conter 11 dígitos.", 'warning');
-            return;
+          showToast("CPF inválido. Deve conter 11 dígitos.", "warning");
+          return;
         }
+
+        // --- VALIDAÇÃO DE TELEFONE (10 ou 11 dígitos, se preenchido) ---
+        if (
+          telValue.length > 0 &&
+          (telValue.length < 10 || telValue.length > 11)
+        ) {
+          showToast(
+            "Telefone inválido. Deve conter 10 ou 11 dígitos.",
+            "warning"
+          );
+          return;
+        }
+        // --- FIM DA VALIDAÇÃO ---
 
         try {
           const response = await fetch(API_BASE_URL, {
@@ -466,17 +501,20 @@
           });
           if (!response.ok) {
             const errorData = await response.json();
-            // Tenta mostrar erro de CPF duplicado
-            const errorMsg = errorData.cpf ? "Este CPF já está cadastrado." : (errorData.detail || "Erro ao salvar.");
+            const errorMsg = errorData.cpf
+              ? "Este CPF já está cadastrado."
+              : errorData.detail || "Erro ao salvar.";
             throw new Error(errorMsg);
           }
 
           addModal.classList.remove("active");
           form.reset();
-          showToast(`Paciente ${novoPaciente.nome} adicionado!`, 'success');
+          if (cpfAddMask) cpfAddMask.value = "";
+          if (telAddMask) telAddMask.value = "";
+          showToast(`Paciente ${novoPaciente.nome} adicionado!`, "success");
           carregarEAtualizarTudo();
         } catch (error) {
-          showToast(error.message || "Falha ao salvar paciente.", 'error');
+          showToast(error.message || "Falha ao salvar paciente.", "error");
         }
       });
     }
@@ -485,28 +523,33 @@
     const detailsModal = document.getElementById("patient-details-modal");
     if (detailsModal) {
       const form = detailsModal.querySelector("form");
-      
-      // --- INÍCIO DA LÓGICA DE MÁSCARA (Funcionalidade 2) ---
-      let cpfDetalheMask, telDetalheMask; // Armazena instâncias da máscara
-      if (typeof IMask !== 'undefined') {
+
+      let cpfDetalheMask, telDetalheMask;
+      if (typeof IMask !== "undefined") {
         const cpfInput = form.querySelector("#detalhe-cpf");
         const telInput = form.querySelector("#detalhe-telefone");
-        
+
         if (cpfInput) {
-          cpfDetalheMask = IMask(cpfInput, { mask: '000.000.000-00' });
+          cpfDetalheMask = IMask(cpfInput, { mask: "000.000.000-00" });
         }
         if (telInput) {
-          telDetalheMask = IMask(telInput, { mask: '(00) 00000-0000' });
+          // --- ALTERAÇÃO: MÁSCARA DE TELEFONE 10 OU 11 DÍGITOS ---
+          telDetalheMask = IMask(telInput, {
+            mask: [
+              { mask: "(00) 0000-0000" }, // Fixo
+              { mask: "(00) 00000-0000" }, // Celular
+            ],
+          });
         }
       } else {
         console.warn("Biblioteca IMask.js não carregada.");
       }
-      // --- FIM DA LÓGICA DE MÁSCARA ---
 
       const closeBtn = detailsModal.querySelector("#close-details-btn");
       const editBtn = detailsModal.querySelector("#editar-paciente-btn");
       const deleteBtn = detailsModal.querySelector("#excluir-paciente-btn");
       const saveBtn = detailsModal.querySelector("#salvar-edicao-btn");
+      const linkMapaBtn = detailsModal.querySelector("#link-mapa"); // --- BOTÃO DO MAPA ---
       let currentId = null;
 
       document.addEventListener("click", async (e) => {
@@ -520,6 +563,7 @@
           if (!res.ok) throw new Error("Erro ao buscar detalhes.");
           const p = await res.json();
 
+          // Preenche os campos
           form.querySelector("#detalhe-nome").value = p.nome;
           form.querySelector("#detalhe-data-nasc").value = p.data_nascimento;
           form.querySelector("#detalhe-data-consulta").value = p.data_consulta;
@@ -528,8 +572,8 @@
           form.querySelector("#detalhe-status").value = p.status;
           form.querySelector("#detalhe-observacoes").value =
             p.observacoes || "";
+          form.querySelector("#detalhe-endereco").value = p.endereco || ""; // --- NOVO CAMPO ---
 
-          // Atualiza o valor das máscaras (importante!)
           if (cpfDetalheMask) cpfDetalheMask.value = p.cpf;
           if (telDetalheMask) telDetalheMask.value = p.telefone || "";
 
@@ -541,10 +585,20 @@
           form.querySelector("#detalhe-comorbidade").value =
             mapComorb[p.comorbidade] || "";
 
+          // --- LÓGICA DO BOTÃO DO MAPA ---
+          if (p.endereco && linkMapaBtn) {
+            const query = encodeURIComponent(p.endereco);
+            linkMapaBtn.href = `https://www.google.com/maps/search/?api=1&query=${query}`;
+            linkMapaBtn.style.display = "inline-flex"; // Mostra o botão
+          } else if (linkMapaBtn) {
+            linkMapaBtn.style.display = "none"; // Esconde se não há endereço
+          }
+          // --- FIM DA LÓGICA DO MAPA ---
+
           setEditMode(false);
           detailsModal.classList.add("active");
         } catch (err) {
-          showToast(err.message || "Erro ao carregar dados.", 'error');
+          showToast(err.message || "Erro ao carregar dados.", "error");
         }
       });
 
@@ -553,8 +607,9 @@
       );
 
       const setEditMode = (enabled) => {
+        // Seleciona TODOS os campos editáveis, incluindo o novo de endereço
         const editableInputs = form.querySelectorAll(
-          "#detalhe-nome, #detalhe-cpf, #detalhe-data-nasc, #detalhe-telefone, #detalhe-comorbidade, #detalhe-data-consulta, #detalhe-observacoes"
+          "#detalhe-nome, #detalhe-cpf, #detalhe-data-nasc, #detalhe-telefone, #detalhe-endereco, #detalhe-comorbidade, #detalhe-data-consulta, #detalhe-observacoes"
         );
         editableInputs.forEach((inp) => {
           inp.readOnly = !enabled;
@@ -563,6 +618,14 @@
         form.querySelector("#detalhe-comorbidade").disabled = !enabled;
         editBtn.textContent = enabled ? "Cancelar" : "Editar";
         saveBtn.style.display = enabled ? "inline-block" : "none";
+        // Esconde o botão do mapa durante a edição (opcional, mas mais limpo)
+        if (linkMapaBtn) {
+          linkMapaBtn.style.display = enabled
+            ? "none"
+            : form.querySelector("#detalhe-endereco").value
+            ? "inline-flex"
+            : "none";
+        }
       };
 
       editBtn.addEventListener("click", () =>
@@ -577,13 +640,13 @@
               headers: { "X-CSRFToken": csrftoken },
             });
             if (!response.ok && response.status !== 204) {
-              throw new Error('Erro ao excluir.');
+              throw new Error("Erro ao excluir.");
             }
             detailsModal.classList.remove("active");
-            showToast("Paciente excluído com sucesso.", 'success');
+            showToast("Paciente excluído com sucesso.", "success");
             carregarEAtualizarTudo();
           } catch (error) {
-            showToast("Não foi possível excluir o paciente.", 'error');
+            showToast("Não foi possível excluir o paciente.", "error");
           }
         }
       });
@@ -591,27 +654,62 @@
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const comorbSelect = form.querySelector("#detalhe-comorbidade");
-        
-        // Pega o valor "puro" (sem máscara) do IMask
-        const cpfValue = cpfDetalheMask ? cpfDetalheMask.unmaskedValue : form.querySelector("#detalhe-cpf").value;
-        const telValue = telDetalheMask ? telDetalheMask.unmaskedValue : form.querySelector("#detalhe-telefone").value;
-        
-        // Validação simples de CPF
-        if (cpfValue.length !== 11) {
-            showToast("CPF inválido. Deve conter 11 dígitos.", 'warning');
-            return;
+
+        const cpfValue = cpfDetalheMask
+          ? cpfDetalheMask.unmaskedValue
+          : form.querySelector("#detalhe-cpf").value;
+        const telValue = telDetalheMask
+          ? telDetalheMask.unmaskedValue
+          : form.querySelector("#detalhe-telefone").value;
+
+        // --- VALIDAÇÃO COMPLETA (Campos obrigatórios, CPF, Telefone) ---
+        const nome = form.querySelector("#detalhe-nome").value;
+        const dataNasc = form.querySelector("#detalhe-data-nasc").value;
+        const dataConsulta = form.querySelector("#detalhe-data-consulta").value;
+        const comorb = comorbSelect.options[comorbSelect.selectedIndex].text;
+        const endereco = form.querySelector("#detalhe-endereco").value.trim();
+
+        if (
+          !nome ||
+          !cpfValue ||
+          !dataNasc ||
+          !dataConsulta ||
+          !comorb ||
+          !endereco
+        ) {
+          showToast(
+            "Por favor, preencha todos os campos obrigatórios.",
+            "warning"
+          );
+          return;
         }
+        if (cpfValue.length !== 11) {
+          showToast("CPF inválido. Deve conter 11 dígitos.", "warning");
+          return;
+        }
+        if (
+          telValue.length > 0 &&
+          (telValue.length < 10 || telValue.length > 11)
+        ) {
+          showToast(
+            "Telefone inválido. Deve conter 10 ou 11 dígitos.",
+            "warning"
+          );
+          return;
+        }
+        // --- FIM DA VALIDAÇÃO ---
 
         const data = {
-          nome: form.querySelector("#detalhe-nome").value,
-          cpf: cpfValue, // Envia o valor sem máscara
-          data_nascimento: form.querySelector("#detalhe-data-nasc").value,
-          telefone: telValue, // Envia o valor sem máscara
-          comorbidade: comorbSelect.options[comorbSelect.selectedIndex].text,
-          data_consulta: form.querySelector("#detalhe-data-consulta").value,
+          nome: nome,
+          cpf: cpfValue,
+          data_nascimento: dataNasc,
+          telefone: telValue,
+          endereco: endereco, // --- NOVO CAMPO ADICIONADO ---
+          comorbidade: comorb,
+          data_consulta: dataConsulta,
           observacoes: form.querySelector("#detalhe-observacoes").value,
         };
-        
+
         try {
           const response = await fetch(`${API_BASE_URL}${currentId}/`, {
             method: "PUT",
@@ -623,14 +721,19 @@
           });
           if (!response.ok) {
             const errorData = await response.json();
-            const errorMsg = errorData.cpf ? "Este CPF já está cadastrado." : (errorData.detail || 'Erro ao salvar.');
+            const errorMsg = errorData.cpf
+              ? "Este CPF já está cadastrado."
+              : errorData.detail || "Erro ao salvar.";
             throw new Error(errorMsg);
           }
           detailsModal.classList.remove("active");
-          showToast("Paciente atualizado com sucesso!", 'success');
+          showToast("Paciente atualizado com sucesso!", "success");
           carregarEAtualizarTudo();
         } catch (error) {
-          showToast(error.message || "Não foi possível salvar as alterações.", 'error');
+          showToast(
+            error.message || "Não foi possível salvar as alterações.",
+            "error"
+          );
         }
       });
     }

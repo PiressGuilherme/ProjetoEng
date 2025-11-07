@@ -9,9 +9,6 @@ class PacienteSerializer(serializers.ModelSerializer):
     incluindo campos calculados (status e proxima_consulta).
     """
 
-    # Estes são campos extras, "read-only", que nosso frontend espera.
-    # O SerializerMethodField() diz ao DRF para chamar as funções
-    # get_status() e get_proxima_consulta() para obter os valores.
     status = serializers.SerializerMethodField()
     proxima_consulta = serializers.SerializerMethodField()
 
@@ -25,10 +22,11 @@ class PacienteSerializer(serializers.ModelSerializer):
             'data_nascimento', 
             'telefone',
             'comorbidade', 
-            'data_consulta',  # Esta é a 'dataUltimaConsulta' do seu mock
+            'data_consulta',
             'observacoes',
-            'status',           # Campo calculado
-            'proxima_consulta'  # Campo calculado
+            'endereco', # --- NOVO CAMPO ADICIONADO ---
+            'status',
+            'proxima_consulta'
         ]
 
     def _calcular_status_info(self, obj):
@@ -41,17 +39,12 @@ class PacienteSerializer(serializers.ModelSerializer):
             'Diabetes': 6,
             'Gestante': 1
         }
-        # Pega o intervalo em meses ou usa 6 meses como padrão
         intervalo_meses = intervalos.get(obj.comorbidade, 6)
         
-        # Usa a data da última consulta como base.
         data_base = obj.data_consulta if obj.data_consulta else date.today()
-        
-        # Calcula a data da próxima consulta
         data_proxima = data_base + relativedelta(months=intervalo_meses)
         
         hoje = date.today()
-        # Calcula os dias restantes (pode ser negativo se estiver atrasado)
         dias_restantes = (data_proxima - hoje).days
 
         status = ''

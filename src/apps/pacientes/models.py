@@ -25,11 +25,14 @@ class Paciente(models.Model):
         help_text="Comorbidade principal do paciente"
     )
     
-    # Vamos usar 'data_consulta' para armazenar a data da última consulta registrada.
-    # O seu mock tinha 'dataConsulta' e 'dataUltimaConsulta', vamos unificar aqui.
     data_consulta = models.DateField(help_text="Data da consulta mais recente registrada.")
     
     observacoes = models.TextField(blank=True, null=True, help_text="Observações adicionais (opcional)")
+
+    # --- NOVO CAMPO OBRIGATÓRIO ---
+    # Removido blank=True, null=True para tornar obrigatório
+    endereco = models.CharField(max_length=255, help_text="Endereço completo do paciente")
+    # --- FIM DO NOVO CAMPO ---
 
     class Meta:
         ordering = ['nome'] # Ordenar listas de pacientes por nome por padrão

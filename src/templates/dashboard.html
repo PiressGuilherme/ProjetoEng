@@ -26,7 +26,7 @@
     />
   </head>
 
-  <body>
+  <body class="dashboard-page">
     <!-- Cabeçalho -->
     <header class="main-header">
       <div class="header-content">
@@ -47,7 +47,7 @@
     </header>
 
     <!-- Conteúdo principal -->
-    <main class="dashboard-page">
+    <main>
       <div class="page-title">
         <h2>Dashboard</h2>
         <p>Visão geral dos pacientes da UBS</p>
@@ -172,23 +172,37 @@
               <label for="telefone">Telefone</label>
               <input type="text" id="telefone" placeholder="(00) 00000-0000" />
             </div>
+          </div>
 
+          <!-- --- NOVO CAMPO DE ENDEREÇO --- -->
+          <div class="input-group">
+            <label for="endereco">Endereço *</label>
+            <input
+              type="text"
+              id="endereco"
+              placeholder="Ex: Rua das Flores, 123 - Bairro"
+              required
+            />
+          </div>
+          <!-- --- FIM DO NOVO CAMPO --- -->
+
+          <div class="form-row">
             <div class="input-group">
               <label for="data-consulta">Data da Consulta *</label>
               <input type="date" id="data-consulta" required />
             </div>
-          </div>
 
-          <div class="input-group">
-            <label for="comorbidade">Comorbidade *</label>
-            <select id="comorbidade" required>
-              <option value="" disabled selected>
-                Selecione a comorbidade
-              </option>
-              <option value="hipertensao">Hipertensão</option>
-              <option value="diabetes">Diabetes</option>
-              <option value="gestante">Gestante</option>
-            </select>
+            <div class="input-group">
+              <label for="comorbidade">Comorbidade *</label>
+              <select id="comorbidade" required>
+                <option value="" disabled selected>
+                  Selecione a comorbidade
+                </option>
+                <option value="hipertensao">Hipertensão</option>
+                <option value="diabetes">Diabetes</option>
+                <option value="gestante">Gestante</option>
+              </select>
+            </div>
           </div>
 
           <div class="input-group">
@@ -252,6 +266,13 @@
             </div>
           </div>
 
+          <!-- --- NOVO CAMPO DE ENDEREÇO --- -->
+          <div class="input-group">
+            <label for="detalhe-endereco">Endereço *</label>
+            <input type="text" id="detalhe-endereco" readonly required />
+          </div>
+          <!-- --- FIM DO NOVO CAMPO --- -->
+
           <div class="form-row">
             <div class="input-group">
               <label for="detalhe-comorbidade">Comorbidade</label>
@@ -286,28 +307,42 @@
           </div>
 
           <div class="modal-footer">
-            <button
-              type="button"
+            <!-- --- NOVO BOTÃO DO MAPA --- -->
+            <a
+              href="#"
+              target="_blank"
               class="btn btn-secondary"
-              id="editar-paciente-btn"
-            >
-              Editar
-            </button>
-            <button
-              type="button"
-              class="btn btn-danger"
-              id="excluir-paciente-btn"
-            >
-              Excluir
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              id="salvar-edicao-btn"
+              id="link-mapa"
               style="display: none"
             >
-              Salvar
-            </button>
+              <i class="fa-solid fa-map-location-dot"></i> Ver no Mapa
+            </a>
+            <!-- --- FIM DO NOVO BOTÃO --- -->
+
+            <div class="modal-footer-actions">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                id="editar-paciente-btn"
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger"
+                id="excluir-paciente-btn"
+              >
+                Excluir
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="salvar-edicao-btn"
+                style="display: none"
+              >
+                Salvar
+              </button>
+            </div>
           </div>
         </form>
       </div>
