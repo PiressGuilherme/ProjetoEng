@@ -1,15 +1,10 @@
-/* ---------------------------------------------------
-   GESTOR DE PACIENTES UBS
-   Estilo unificado, priorizando a nova identidade visual
-   com adição dos layouts faltantes.
---------------------------------------------------- */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
-    --primary-color: #004aad; /* Azul UBS */
+    --primary-color: #004aad;
     --secondary-color: #f6f8fb;
-    --accent-color: #ff7b00; /* Laranja para botões e destaques */
+    --accent-color: #ff7b00; 
     --success-color: #34c759;
     --warning-color: #ffcc00;
     --danger-color: #e53935;
@@ -42,7 +37,7 @@ a {
 }
 
 /* ---------------------------------------------------
-   PÁGINA DE LOGIN (Adicionado do Código 2)
+   PÁGINA DE LOGIN
 --------------------------------------------------- */
 .login-page {
     display: flex;
@@ -293,7 +288,7 @@ main {
 .progress-bar {
     height: 100%;
     background: var(--accent-color);
-    width: 60%; /* Exemplo, deve ser dinâmico */
+    width: 60%; 
 }
 
 /* ---------------------------------------------------
@@ -634,7 +629,7 @@ main {
 }
 
 /* ---------------------------------------------------
-   RESPONSIVIDADE (Melhorado com base no Código 2)
+   RESPONSIVIDADE
 --------------------------------------------------- */
 @media (max-width: 992px) {
     .dashboard-lists {

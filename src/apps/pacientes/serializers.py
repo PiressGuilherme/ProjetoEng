@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import Paciente  # Importa o modelo da mesma app
+from .models import Paciente  
 from datetime import date
-from dateutil.relativedelta import relativedelta # Biblioteca que instalamos
+from dateutil.relativedelta import relativedelta 
 
 class PacienteSerializer(serializers.ModelSerializer):
     """
@@ -24,7 +24,7 @@ class PacienteSerializer(serializers.ModelSerializer):
             'comorbidade', 
             'data_consulta',
             'observacoes',
-            'endereco', # --- NOVO CAMPO ADICIONADO ---
+            'endereco', 
             'status',
             'proxima_consulta'
         ]

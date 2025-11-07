@@ -21,11 +21,10 @@ class LoginApiView(views.APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        # AGORA: Recebemos 'username' diretamente do frontend
+        
         username = request.data.get('username')
         password = request.data.get('password')
         
-        # A função authenticate já espera 'username' por padrão. Perfeito.
         user = authenticate(request, username=username, password=password)
         
         if user is not None:

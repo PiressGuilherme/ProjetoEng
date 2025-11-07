@@ -8,8 +8,8 @@ router.register(r'pacientes', views.PacienteViewSet, basename='paciente')
 urlpatterns = [
     # Rotas da API REST
     path('api/', include(router.urls)),
-    path('api/login/', views.LoginApiView.as_view(), name='api-login'),   # Nova rota
-    path('api/logout/', views.LogoutApiView.as_view(), name='api-logout'), # Nova rota
+    path('api/login/', views.LoginApiView.as_view(), name='api-login'),   
+    path('api/logout/', views.LogoutApiView.as_view(), name='api-logout'), 
 
     # Rotas do Frontend (HTML)
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),

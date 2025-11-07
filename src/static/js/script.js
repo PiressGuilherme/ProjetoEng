@@ -1,4 +1,3 @@
-// script.js — Versão com Endereço e Link do Mapa
 (() => {
   "use strict";
 
@@ -344,7 +343,6 @@
 
     const filtrados = listaCompletaPacientes.filter((p) => {
       if (!searchTerm) return true;
-      // Busca agora inclui o endereço
       return (
         p.nome.toLowerCase().includes(searchTerm) ||
         p.cpf.includes(searchTerm) ||
@@ -450,7 +448,7 @@
           cpf: cpfValue, // Envia o valor sem máscara
           data_nascimento: form.querySelector("#data-nascimento").value,
           telefone: telValue, // Envia o valor sem máscara
-          endereco: form.querySelector("#endereco").value.trim(), // --- NOVO CAMPO ADICIONADO ---
+          endereco: form.querySelector("#endereco").value.trim(),
           data_consulta: form.querySelector("#data-consulta").value,
           comorbidade:
             comorbSelect.options[comorbSelect.selectedIndex]?.text || "",
@@ -463,7 +461,7 @@
           !novoPaciente.data_nascimento ||
           !novoPaciente.data_consulta ||
           !novoPaciente.comorbidade ||
-          !novoPaciente.endereco // --- VALIDAÇÃO DE ENDEREÇO OBRIGATÓRIO ---
+          !novoPaciente.endereco
         ) {
           showToast(
             "Por favor, preencha todos os campos obrigatórios.",
@@ -549,7 +547,7 @@
       const editBtn = detailsModal.querySelector("#editar-paciente-btn");
       const deleteBtn = detailsModal.querySelector("#excluir-paciente-btn");
       const saveBtn = detailsModal.querySelector("#salvar-edicao-btn");
-      const linkMapaBtn = detailsModal.querySelector("#link-mapa"); // --- BOTÃO DO MAPA ---
+      const linkMapaBtn = detailsModal.querySelector("#link-mapa");
       let currentId = null;
 
       document.addEventListener("click", async (e) => {
@@ -572,7 +570,7 @@
           form.querySelector("#detalhe-status").value = p.status;
           form.querySelector("#detalhe-observacoes").value =
             p.observacoes || "";
-          form.querySelector("#detalhe-endereco").value = p.endereco || ""; // --- NOVO CAMPO ---
+          form.querySelector("#detalhe-endereco").value = p.endereco || "";
 
           if (cpfDetalheMask) cpfDetalheMask.value = p.cpf;
           if (telDetalheMask) telDetalheMask.value = p.telefone || "";
@@ -618,7 +616,7 @@
         form.querySelector("#detalhe-comorbidade").disabled = !enabled;
         editBtn.textContent = enabled ? "Cancelar" : "Editar";
         saveBtn.style.display = enabled ? "inline-block" : "none";
-        // Esconde o botão do mapa durante a edição (opcional, mas mais limpo)
+        // Esconde o botão do mapa durante a edição
         if (linkMapaBtn) {
           linkMapaBtn.style.display = enabled
             ? "none"
@@ -704,7 +702,7 @@
           cpf: cpfValue,
           data_nascimento: dataNasc,
           telefone: telValue,
-          endereco: endereco, // --- NOVO CAMPO ADICIONADO ---
+          endereco: endereco,
           comorbidade: comorb,
           data_consulta: dataConsulta,
           observacoes: form.querySelector("#detalhe-observacoes").value,

@@ -6,7 +6,6 @@ class Paciente(models.Model):
     histórico de consulta e comorbidade.
     """
     
-    # Opções para o campo 'comorbidade', baseado no seu mock
     COMORBIDADE_CHOICES = [
         ('Hipertensão', 'Hipertensão'),
         ('Diabetes', 'Diabetes'),
@@ -28,11 +27,7 @@ class Paciente(models.Model):
     data_consulta = models.DateField(help_text="Data da consulta mais recente registrada.")
     
     observacoes = models.TextField(blank=True, null=True, help_text="Observações adicionais (opcional)")
-
-    # --- NOVO CAMPO OBRIGATÓRIO ---
-    # Removido blank=True, null=True para tornar obrigatório
     endereco = models.CharField(max_length=255, help_text="Endereço completo do paciente")
-    # --- FIM DO NOVO CAMPO ---
 
     class Meta:
         ordering = ['nome'] # Ordenar listas de pacientes por nome por padrão
