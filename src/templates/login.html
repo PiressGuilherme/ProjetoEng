@@ -7,6 +7,16 @@
     <title>Login | Gestor de Pacientes UBS</title>
 
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <link
+      rel="icon"
+      href="{% static 'assets/favicon.ico' %}"
+      type="image/x-icon"
+    />
 
     <link
       rel="stylesheet"
@@ -26,14 +36,14 @@
 
         <form class="login-form">
           <div class="input-group">
-            <label for="email">Email</label>
+            <label for="username">Login Institucional</label>
             <div class="input-with-icon">
-              <i class="fa-solid fa-envelope icon"></i>
+              <i class="fa-solid fa-user icon"></i>
               <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="seu@email.com"
+                type="text"
+                id="username"
+                name="username"
+                placeholder="nome.sobrenome"
                 required
               />
             </div>
@@ -61,6 +71,10 @@
         </div>
       </div>
     </main>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/toastify-js"
+    ></script>
     <script src="{% static 'js/script.js' %}" defer></script>
   </body>
 </html>

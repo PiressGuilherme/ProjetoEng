@@ -8,6 +8,16 @@
 
     <!-- Estilos principais -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <link
+      rel="icon"
+      href="{% static 'assets/favicon.ico' %}"
+      type="image/x-icon"
+    />
 
     <!-- Ícones Font Awesome -->
     <link
@@ -203,7 +213,112 @@
       </div>
     </div>
 
+    <!-- Modal de detalhes do paciente -->
+    <div class="modal-overlay" id="patient-details-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Detalhes do Paciente</h2>
+          <button
+            class="close-modal-btn"
+            id="close-details-btn"
+            aria-label="Fechar"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form class="patient-details-form" novalidate>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="detalhe-nome">Nome Completo</label>
+              <input type="text" id="detalhe-nome" readonly />
+            </div>
+
+            <div class="input-group">
+              <label for="detalhe-cpf">CPF</label>
+              <input type="text" id="detalhe-cpf" readonly />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="input-group">
+              <label for="detalhe-data-nasc">Data de Nascimento</label>
+              <input type="date" id="detalhe-data-nasc" readonly />
+            </div>
+
+            <div class="input-group">
+              <label for="detalhe-telefone">Telefone</label>
+              <input type="text" id="detalhe-telefone" readonly />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="input-group">
+              <label for="detalhe-comorbidade">Comorbidade</label>
+              <select id="detalhe-comorbidade" disabled>
+                <option value="hipertensao">Hipertensão</option>
+                <option value="diabetes">Diabetes</option>
+                <option value="gestante">Gestante</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label for="detalhe-data-consulta">Data da Consulta</label>
+              <input type="date" id="detalhe-data-consulta" readonly />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="input-group">
+              <label for="detalhe-proxima-consulta">Próxima Consulta</label>
+              <input type="date" id="detalhe-proxima-consulta" readonly />
+            </div>
+
+            <div class="input-group">
+              <label for="detalhe-status">Status</label>
+              <input type="text" id="detalhe-status" readonly />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="detalhe-observacoes">Observações</label>
+            <textarea id="detalhe-observacoes" readonly></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="editar-paciente-btn"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              id="excluir-paciente-btn"
+            >
+              Excluir
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              id="salvar-edicao-btn"
+              style="display: none"
+            >
+              Salvar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Script principal -->
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/toastify-js"
+    ></script>
+    <script src="https://unpkg.com/imask"></script>
     <script src="{% static 'js/script.js' %}" defer></script>
   </body>
 </html>

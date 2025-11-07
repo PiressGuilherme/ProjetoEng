@@ -1,23 +1,20 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views  # Importa o views.py (agora com as TemplateViews)
+from . import views
 
-# --- Configuração do Router da API ---
 router = DefaultRouter()
 router.register(r'pacientes', views.PacienteViewSet, basename='paciente')
 
-# --- Padrões de URL ---
 urlpatterns = [
-    # 1. Rotas da API
-    # (ex: /api/pacientes/ e /api/pacientes/1/)
+    # Rotas da API REST
     path('api/', include(router.urls)),
+    path('api/login/', views.LoginApiView.as_view(), name='api-login'),   # Nova rota
+    path('api/logout/', views.LogoutApiView.as_view(), name='api-logout'), # Nova rota
 
-    # 2. Rotas do Frontend (HTML)
+    # Rotas do Frontend (HTML)
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
     path('pacientes/', views.PacientesView.as_view(), name='pacientes'),
     path('login/', views.LoginView.as_view(), name='login'),
     
-    # 3. Rota Raiz (página inicial)
-    # Vamos fazer a raiz (/) redirecionar para o dashboard
-    path('', views.DashboardView.as_view(), name='home'),
-]
+    path('', views.LoginView.as_view(), name='home'),
+]       
