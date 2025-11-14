@@ -38,7 +38,12 @@
         </div>
 
         <div class="user-info">
-          <span>Dr. Admin <small>Equipe UBS</small></span>
+          <span>
+            Profissional da Saúde: {% if user.first_name and user.last_name %}
+            {{ user.first_name }} {{ user.last_name }} {% else %} {{
+            user.username }} {% endif %}
+            <small>Equipe UBS</small>
+          </span>
           <a href="{% url 'login' %}" class="btn-logout">
             <i class="fa-solid fa-right-from-bracket"></i> Sair
           </a>

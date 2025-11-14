@@ -141,6 +141,11 @@
     }
   };
 
+  const formatarCPF = (cpf) => {
+    if (!cpf || cpf.length !== 11) return cpf || "-";
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  };
+
   /* -------------------------------------------------------------------------- */
   /* ----------------------- RENDERIZAÇÃO (DASHBOARD/LISTA) ------------------- */
   /* -------------------------------------------------------------------------- */
@@ -220,12 +225,14 @@
         <div class="patient-card">
           <div class="patient-info">
             <span class="patient-name">${p.nome}</span>
-            <span class="patient-cpf">CPF: ${p.cpf}</span>
+            <span class="patient-cpf">CPF: ${formatarCPF(p.cpf)}</span>
           </div>
           <div class="patient-status">
             <span class="status-tag tag-late">${tagText}</span>
             <span class="comorbidity-tag ${comorbClass}">${p.comorbidade}</span>
-            <a href="#" class="action-link small" data-id="${p.id}">Ver detalhes</a>
+            <a href="#" class="action-link small" data-id="${
+              p.id
+            }">Ver detalhes</a>
           </div>
         </div>`;
     };
@@ -238,12 +245,14 @@
         <div class="patient-card">
           <div class="patient-info">
             <span class="patient-name">${p.nome}</span>
-            <span class="patient-cpf">CPF: ${p.cpf}</span>
+            <span class="patient-cpf">CPF: ${formatarCPF(p.cpf)}</span>
           </div>
           <div class="patient-status">
             <span class="status-tag tag-soon">Em ${p.diasRestantes} dias</span>
             <span class="comorbidity-tag ${comorbClass}">${p.comorbidade}</span>
-            <a href="#" class="action-link small" data-id="${p.id}">Ver detalhes</a>
+            <a href="#" class="action-link small" data-id="${
+              p.id
+            }">Ver detalhes</a>
           </div>
         </div>`;
     };
@@ -295,7 +304,7 @@
         }</span>
           <div class="col-patient">
             <span class="patient-name">${p.nome}</span>
-            <span class="patient-cpf">CPF: ${p.cpf}</span>
+            <span class="patient-cpf">CPF: ${formatarCPF(p.cpf)}</span>
           </div>
           <span class="col-comorbidity"><span class="comorbidity-tag ${comorbClass}">${
           p.comorbidade
