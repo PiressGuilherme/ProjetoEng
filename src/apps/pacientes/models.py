@@ -3,7 +3,7 @@ from django.db import models
 class Paciente(models.Model):
     """
     Representa um paciente na UBS, com seus dados pessoais,
-    histórico de consulta e comorbidade.
+    histórico de consulta e necessidade específica.
     """
     
     COMORBIDADE_CHOICES = [
@@ -21,7 +21,8 @@ class Paciente(models.Model):
     comorbidade = models.CharField(
         max_length=50, 
         choices=COMORBIDADE_CHOICES,
-        help_text="Comorbidade principal do paciente"
+        verbose_name="Necessidade Específica", # ALTERADO: Define o rótulo visível no Admin
+        help_text="Necessidade específica principal do paciente" # ALTERADO: Texto de ajuda
     )
     
     data_consulta = models.DateField(help_text="Data da consulta mais recente registrada.")

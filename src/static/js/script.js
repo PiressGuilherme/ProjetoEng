@@ -269,11 +269,12 @@
     const container = document.querySelector(".patient-list");
     if (!container) return;
 
+    // --- ALTERAÇÃO AQUI: Cabeçalho da tabela atualizado ---
     container.innerHTML = `
       <div class="list-header">
         <span class="col-status">STATUS</span>
         <span class="col-patient">PACIENTE</span>
-        <span class="col-comorbidity">COMORBIDADE</span>
+        <span class="col-comorbidity">NECESSIDADE ESPECÍFICA</span>
         <span class="col-appointment">PRÓXIMA CONSULTA</span>
         <span class="col-actions">AÇÕES</span>
       </div>`;
@@ -368,7 +369,7 @@
           a.nome.localeCompare(b.nome)
       );
     } else if (sortBy === "comorbidade") {
-      // --- NOVA LÓGICA DE ORDENAÇÃO: Gestante > Hipertensão > Diabetes ---
+      // --- Lógica de ordenação mantida internamente como "comorbidade" ---
       const ordemComorbidade = {
         Gestante: 1,
         Hipertensão: 2,
@@ -377,14 +378,12 @@
       filtrados.sort((a, b) => {
         const valA = ordemComorbidade[a.comorbidade] || 99;
         const valB = ordemComorbidade[b.comorbidade] || 99;
-        // Se empatar na comorbidade, ordena por nome
         return (
           valA - valB ||
           a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" })
         );
       });
     } else {
-      // Ordenação padrão por nome
       filtrados.sort((a, b) =>
         a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" })
       );
@@ -423,16 +422,11 @@
         const telInput = form.querySelector("#telefone");
 
         if (cpfInput) {
-          // Armazenamos a instância da máscara
           cpfAddMask = IMask(cpfInput, { mask: "000.000.000-00" });
         }
         if (telInput) {
-          // Máscara de telefone 10 ou 11 dígitos
           telAddMask = IMask(telInput, {
-            mask: [
-              { mask: "(00) 0000-0000" }, // Fixo
-              { mask: "(00) 00000-0000" }, // Celular
-            ],
+            mask: [{ mask: "(00) 0000-0000" }, { mask: "(00) 00000-0000" }],
           });
         }
       } else {
@@ -471,9 +465,9 @@
 
         const novoPaciente = {
           nome: form.querySelector("#nome-completo").value.trim(),
-          cpf: cpfValue, // Envia o valor sem máscara
+          cpf: cpfValue,
           data_nascimento: form.querySelector("#data-nascimento").value,
-          telefone: telValue, // Envia o valor sem máscara
+          telefone: telValue,
           endereco: form.querySelector("#endereco").value.trim(),
           data_consulta: form.querySelector("#data-consulta").value,
           comorbidade:
@@ -501,7 +495,6 @@
           return;
         }
 
-        // Validação de telefone (10 ou 11 dígitos, se preenchido)
         if (
           telValue.length > 0 &&
           (telValue.length < 10 || telValue.length > 11)
@@ -556,12 +549,8 @@
           cpfDetalheMask = IMask(cpfInput, { mask: "000.000.000-00" });
         }
         if (telInput) {
-          // Máscara de telefone 10 ou 11 dígitos
           telDetalheMask = IMask(telInput, {
-            mask: [
-              { mask: "(00) 0000-0000" }, // Fixo
-              { mask: "(00) 00000-0000" }, // Celular
-            ],
+            mask: [{ mask: "(00) 0000-0000" }, { mask: "(00) 00000-0000" }],
           });
         }
       } else {
@@ -586,7 +575,6 @@
           if (!res.ok) throw new Error("Erro ao buscar detalhes.");
           const p = await res.json();
 
-          // Preenche os campos
           form.querySelector("#detalhe-nome").value = p.nome;
           form.querySelector("#detalhe-data-nasc").value = p.data_nascimento;
           form.querySelector("#detalhe-data-consulta").value = p.data_consulta;
@@ -608,13 +596,12 @@
           form.querySelector("#detalhe-comorbidade").value =
             mapComorb[p.comorbidade] || "";
 
-          // Lógica do botão do mapa
           if (p.endereco && linkMapaBtn) {
             const query = encodeURIComponent(p.endereco);
             linkMapaBtn.href = `https://www.google.com/maps/search/?api=1&query=${query}`;
-            linkMapaBtn.style.display = "inline-flex"; // Mostra o botão
+            linkMapaBtn.style.display = "inline-flex";
           } else if (linkMapaBtn) {
-            linkMapaBtn.style.display = "none"; // Esconde se não há endereço
+            linkMapaBtn.style.display = "none";
           }
 
           setEditMode(false);
@@ -629,7 +616,6 @@
       );
 
       const setEditMode = (enabled) => {
-        // Seleciona TODOS os campos editáveis
         const editableInputs = form.querySelectorAll(
           "#detalhe-nome, #detalhe-cpf, #detalhe-data-nasc, #detalhe-telefone, #detalhe-endereco, #detalhe-comorbidade, #detalhe-data-consulta, #detalhe-observacoes"
         );
@@ -640,7 +626,7 @@
         form.querySelector("#detalhe-comorbidade").disabled = !enabled;
         editBtn.textContent = enabled ? "Cancelar" : "Editar";
         saveBtn.style.display = enabled ? "inline-block" : "none";
-        // Esconde o botão do mapa durante a edição
+
         if (linkMapaBtn) {
           linkMapaBtn.style.display = enabled
             ? "none"
@@ -684,7 +670,6 @@
           ? telDetalheMask.unmaskedValue
           : form.querySelector("#detalhe-telefone").value;
 
-        // Validação completa
         const nome = form.querySelector("#detalhe-nome").value;
         const dataNasc = form.querySelector("#detalhe-data-nasc").value;
         const dataConsulta = form.querySelector("#detalhe-data-consulta").value;

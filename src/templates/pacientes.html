@@ -68,7 +68,7 @@
           <i class="fa-solid fa-search"></i>
           <input
             type="text"
-            placeholder="Buscar por nome, CPF ou comorbidade..."
+            placeholder="Buscar por nome, CPF ou necessidade específica..."
           />
         </div>
 
@@ -77,7 +77,7 @@
           <select id="order-select">
             <option value="status">Status</option>
             <option value="name">Nome (A-Z)</option>
-            <option value="comorbidade">Comorbidade</option>
+            <option value="comorbidade">Necessidade Específica</option>
           </select>
         </div>
 
@@ -146,10 +146,10 @@
             </div>
 
             <div class="input-group">
-              <label for="comorbidade">Comorbidade *</label>
+              <label for="comorbidade">Necessidade Específica *</label>
               <select id="comorbidade" required>
                 <option value="" disabled selected>
-                  Selecione a comorbidade
+                  Selecione a necessidade específica
                 </option>
                 <option value="hipertensao">Hipertensão</option>
                 <option value="diabetes">Diabetes</option>
@@ -225,7 +225,7 @@
 
           <div class="form-row">
             <div class="input-group">
-              <label for="detalhe-comorbidade">Comorbidade</label>
+              <label for="detalhe-comorbidade">Necessidade Específica</label>
               <select id="detalhe-comorbidade" disabled>
                 <option value="hipertensao">Hipertensão</option>
                 <option value="diabetes">Diabetes</option>
