@@ -1,6 +1,6 @@
 # 🏥 Gestor de Pacientes UBS (SISMO)
 
-Sistema de gerenciamento e monitoramento de pacientes para Unidades Básicas de Saúde (UBS). O sistema permite o cadastro de pacientes, controle de comorbidades e define automaticamente a urgência do próximo atendimento com base em regras de negócio específicas de saúde.
+Sistema de gerenciamento e monitoramento de pacientes para Unidades Básicas de Saúde (UBS). O sistema permite o cadastro de pacientes, controle de necessidade específica e define automaticamente a urgência do próximo atendimento com base em regras de negócio específicas de saúde.
 
 ---
 
@@ -19,9 +19,9 @@ O projeto está implantado e acessível publicamente através do Render. Você p
 * **Autenticação Segura:** Sistema de Login/Logout para profissionais da saúde.
 * **Dashboard Interativo:** Visão geral com contagem de pacientes por status de urgência (Verde, Amarelo, Vermelho, Urgente).
 * **Gestão de Pacientes (CRUD):** Adicionar, visualizar detalhes, editar e excluir pacientes.
-* **Cálculo Automático de Retorno:** A data da próxima consulta é calculada automaticamente baseada na necessidade específica (comorbidade) do paciente.
+* **Cálculo Automático de Retorno:** A data da próxima consulta é calculada automaticamente baseada na necessidade específica do paciente.
 * **Sistema de Cores de Prioridade:** Classificação visual automática da urgência baseada nos dias restantes para a consulta.
-* **Busca e Filtros:** Pesquisa em tempo real por nome, CPF ou comorbidade e ordenação dinâmica.
+* **Busca e Filtros:** Pesquisa em tempo real por nome, CPF ou necessidade específica e ordenação dinâmica.
 * **Integração com Mapas:** Link direto para visualizar o endereço do paciente no Google Maps.
 
 ---
@@ -30,7 +30,7 @@ O projeto está implantado e acessível publicamente através do Render. Você p
 
 O sistema possui inteligência para definir prazos e prioridades automaticamente, conforme implementado na API.
 
-### 1. Intervalo de Retorno por Comorbidade
+### 1. Intervalo de Retorno por Necessidade específica
 Ao cadastrar um paciente, a **Próxima Consulta** é calculada automaticamente somando meses à data da última consulta:
 
 | Necessidade Específica | Intervalo de Retorno |
