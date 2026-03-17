@@ -1,10 +1,10 @@
-# 🏥 Gestor de Pacientes UBS (SISMO)
+#  Gestor de Pacientes UBS (SISMO)
 
 Sistema de gerenciamento e monitoramento de pacientes para Unidades Básicas de Saúde (UBS). O sistema permite o cadastro de pacientes, controle de necessidade específica e define automaticamente a urgência do próximo atendimento com base em regras de negócio específicas de saúde.
 
 ---
 
-## 🚀 Acesso Online
+## Acesso Online
 
 O projeto está implantado e acessível publicamente através do Render. Você pode acessá-lo clicando no link abaixo:
 
@@ -14,7 +14,7 @@ O projeto está implantado e acessível publicamente através do Render. Você p
 
 ---
 
-## 📋 Funcionalidades Principais
+## Funcionalidades Principais
 
 * **Autenticação Segura:** Sistema de Login/Logout para profissionais da saúde.
 * **Dashboard Interativo:** Visão geral com contagem de pacientes por status de urgência (Verde, Amarelo, Vermelho, Urgente).
@@ -26,7 +26,7 @@ O projeto está implantado e acessível publicamente através do Render. Você p
 
 ---
 
-## 🧠 Regras de Negócio (Lógica do Sistema)
+## Regras de Negócio (Lógica do Sistema)
 
 O sistema possui inteligência para definir prazos e prioridades automaticamente, conforme implementado na API.
 
@@ -51,7 +51,7 @@ O status é definido dinamicamente calculando quantos dias faltam para a próxim
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 * **Backend:** Python 3.11, Django 5.2, Django REST Framework.
 * **Frontend:** HTML5, CSS3 (Responsivo), Javascript (Vanilla + Fetch API).
@@ -61,7 +61,7 @@ O status é definido dinamicamente calculando quantos dias faltam para a próxim
 
 ---
 
-## 💻 Instalação e Execução Local
+## Instalação e Execução Local
 
 Siga os passos abaixo para rodar o projeto na sua máquina a partir do GitHub.
 
@@ -125,7 +125,7 @@ Siga os passos abaixo para rodar o projeto na sua máquina a partir do GitHub.
 
 ---
 
-## 📖 Como Utilizar as Funções
+## Como Utilizar as Funções
 
 ### 1. Acessando o Sistema
 * Na tela inicial, insira seu **Login Institucional** (username) e **Senha** criados anteriormente.
@@ -150,7 +150,7 @@ Siga os passos abaixo para rodar o projeto na sua máquina a partir do GitHub.
 
 ---
 
-## 📂 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```text
 ProjetoEng/
